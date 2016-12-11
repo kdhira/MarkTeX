@@ -1,0 +1,76 @@
+\documentclass[10pt, a4paper]{article}
+
+\title{MarkTeX}
+\author{Kevin Hira}
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+MarkTeX is an application that converts markup (markdown) into \LaTeX{} code. This converter application will allow files written in markdown (and even with raw \LaTeX{} code mixed in) to be converted to \LaTeX{} documents that can be compiled to Portable Document Format (pdf) with out error. MarkTeX does not need to comply fully with other markup languages entirely; the markup language that is used with MarkTeX will most likey be an off-shoot of markdown.
+
+\pagebreak
+
+\section{Requirements}
+\subsection{Markup Parsing}
+MarkTeX should be able to parse the general markup rules, like those in the markdown langauge, namely:
+\begin{itemize}
+    \item Headings
+    \begin{itemize}
+        \item \verb!# Heading! should convert to \verb!\section{Heading}!.
+        \item \verb!## Subheading! should convert to \verb!\subsection{Subheading}!.
+        \item \verb!### Subsubheading! should convert to \newline \verb!\subsubsection{Subsubheading}!.
+    \end{itemize}
+    \item Paragraphs and Formatting
+    \begin{itemize}
+        \item Paragraphs should be separated by blank lines.
+        \item Lines ending in two spaces should create a line break in paragraphs, \verb!\\! or \verb!\newline!.
+        \item \verb!_text_! and \verb!*text*! should convert to \verb!\textit{text}!.
+        \item \verb!__text__! and \verb!**text**! should convert to \verb!\textbf{text}!.
+        \item \texttt{\`}\verb!text!\texttt{\`} should convert to \verb!\texttt{text}! (or even perhaps \newline \verb+\verb!text!+).
+        \item \verb!---! should convert to \verb!\hline!.
+    \end{itemize}
+    \item Links
+    \begin{itemize}
+        \item \verb![link-url]! should convert to \verb!\url{link-url}!.
+        \item \verb![link-url](link-text)! should convert to \newline \verb!\href{link-url}{link-text}!.
+        \item URLs that are written without any wrapping should attempt to be parse to links.
+        \item Links should also work with mailto links.
+    \end{itemize}
+    \item Lists
+    \begin{itemize}
+        \item Lines that start with \verb!-! should add to a unordered list with the \textit{itemize} environment.
+        \item Lines that start with contiguous numbers followed by periods should add to a ordered list with the \textit{enumerate} environment.
+        \item Nested lists should be able to be parsed correctly.
+    \end{itemize}
+    \item Code
+    \begin{itemize}
+        \item Code surrounded by \texttt{\`}\texttt{\`}\texttt{\`} should be handled appropriately.
+    \end{itemize}
+\end{itemize}
+
+\subsection{\LaTeX{} Preserving}
+MarkTeX should also support raw \LaTeX{} in documents, and upon rendering/par\-sing, all \LaTeX{} code should be preserved.
+
+\subsection{Document Layout}
+MarkTeX documents should have a certain layout, which consists of a plain text document starting with the compulsory front matter secton followed by markdown/\LaTeX{} code (the body of the document).
+\subsubsection{Front Matter}
+A MarkTeX document should start with what is known as front matter. The front matter is a header section that defines variables that can be used or refered to throughout the document. This section should start with a line containing only \verb!---! and ending on a line containing only \verb!---!. Variable declarations are one per line and the name and value are separated by a colon (:), eg \verb!title: MarkTeX!
+\subsubsection{Example/Template}
+\begin{verbatim}
+---
+title: Specifications
+author: Kevin Hira
+date: 11 December 2016
+a: 1
+b: true
+---
+# Hello World
+## A Template
+Hello World
+\end{verbatim}
+
+\subsection{Generating \LaTeX{}}
+MarkTeX, upon execution of the program, should generate a error free (when possible) \LaTeX{} document that can later be used to generate a pdf output from.
+
+\end{document}
