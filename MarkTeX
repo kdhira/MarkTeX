@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+VERSION='v0.1'
+
+class LatexDocument:
+    def __init__(self, inputFile):
+        self.content = ''
+        self.preamble = ''
+        self.vars = {}
+        self.inputFile = inputFile
+
+        self.documentvars = {
+            "document.maketitle" : '\\maketitle{}\n',
+            "document.avacado" : '\\avacado{}\n'
+        }
+
+        try:
+            self.fr = open(inputFile, 'r')
+        except Exception as e:
+            print(str(e))
+            sys.exit(2)
+
+    def addVariable(self, key, value):
+        self.vars[key] = value
+
+    def appendPreamble(self, text):
+        self.preamble = self.preamble + text
+
+    def appendContent(self, text):
+        print(text + " to add")
+        self.content = self.content + text
+
+    def readFrontMatter(self):
+        # Read front matter
+        if self.fr.readline().rstrip() != '---':
+            print("Error: Front matter started expected; not found.")
+            sys.exit(3)
+
+        while True:
+            line = self.fr.readline();
+            if line == '':
+                print("Error: EOF before front matter end.")
+                sys.exit(4)
+
+            line = line.rstrip()
+            if line == '---':
+                break
+
+            if not line.startswith('#') and ':' in line:
+                key,val = line.split(':', 1)
+                key = key.strip()
+                val = val.strip()
+                if key != '':
+                    self.addVariable(key, val)
+
+
+
+    def writePreamble(self):
+        self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
+        documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
+
+        for v in ['title', 'author', 'date']:
+            if v in self.vars:
+                self.appendPreamble('\\' + v + '{' + self.vars[v] + '}\n')
+
+        for k in documentKeys:
+            self.appendContent(self.documentvars[k]);
+
+    def writeContent(self):
+        #FLAGS
+        raw = False
+
+        line = self.fr.readline()
+        while line != '':
+            line = line.rstrip()
+            if raw:
+                self.appendContent(line + '\n')
+            else:
+                if line == '\\begin{latex}':
+                    raw = True
+                elif line == '\\end{latex}':
+                    raw = False
+                elif line.startswith('#'):
+                    self.addHeading(line)
+                else:
+                    self.appendContent(self.processText(line) + '\n')
+
+            line = self.fr.readline()
+
+    def processText(self, text):
+        text = text.strip();
+        return text
+    def addHeading(self, line):
+        depth = 0
+        for i in range(3, 0, -1):
+            if line.startswith(i*'#'):
+                depth = i
+                break
+
+        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.processText(line[depth:]) + '}\n')
+
+    def combineDocument(self):
+        return self.preamble \
+            + '\n\\begin{document}\n\n' \
+            + self.content \
+            + '\n\\end{document}\n'
+
+    def writeDocument(self):
+        if not '.' in self.inputFile:
+            newFile = self.inputFile + '.tex'
+        else:
+            newFile = self.inputFile.rsplit('.', 1)[0] + '.tex'
+
+
+        with open(newFile, 'w') as fw:
+            fw.write(self.combineDocument())
+
+
+# print(os.path.realpath(__file__))
+if len(sys.argv) < 2:
+    print('Usage: MarkTeX <input mtex file>.')
+    sys.exit(1)
+
+# Print start message.
+print('MarkTeX ' + VERSION)
+
+if not sys.argv[0].endswith('/MarkTeX'):
+    print('You\'ve renamed the application...')
+print('Input file - ' + sys.argv[1] + ':')
+
+doc = LatexDocument(sys.argv[1])
+doc.readFrontMatter()
+
+doc.writePreamble()
+doc.writeContent()
+print('EOP---------------------------')
+print(doc.combineDocument())
+doc.writeDocument()
