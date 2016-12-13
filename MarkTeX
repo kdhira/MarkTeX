@@ -2,6 +2,8 @@
 
 import os
 import sys
+import re
+import math
 VERSION='v0.1'
 
 class LatexDocument:
@@ -22,6 +24,15 @@ class LatexDocument:
             print(str(e))
             sys.exit(2)
 
+    def findall(self, text, pattern):
+        return [m.start() for m in re.finditer(pattern, text)]
+
+    def replaceText(self, source, start, length, text):
+        # source[:start] + source[start:start+length] + source[start+length:]
+        if start+length > len(source):
+            return source[:start] + text
+        return source[:start] + text + source[start+length:]
+
     def addVariable(self, key, value):
         self.vars[key] = value
 
@@ -29,7 +40,6 @@ class LatexDocument:
         self.preamble = self.preamble + text
 
     def appendContent(self, text):
-        print(text + " to add")
         self.content = self.content + text
 
     def readFrontMatter(self):
@@ -74,6 +84,7 @@ class LatexDocument:
 
         line = self.fr.readline()
         while line != '':
+            rawline = line
             line = line.rstrip()
             if raw:
                 self.appendContent(line + '\n')
@@ -85,13 +96,34 @@ class LatexDocument:
                 elif line.startswith('#'):
                     self.addHeading(line)
                 else:
-                    self.appendContent(self.processText(line) + '\n')
+                    self.appendContent(self.processText(rawline) + '\n')
 
             line = self.fr.readline()
 
     def processText(self, text):
+        if text.endswith('  \n'):
+            text = self.replaceText(text, len(text)-2, 2, '\\\\')
         text = text.strip();
+
+        patterns = [];
+        patterns.append((r'[\*]{3}', '***', '\\textbf{\\textit{', '}}'))
+        patterns.append((r'[_]{3}', '___', '\\textbf{\\textit{', '}}'))
+        patterns.append((r'[\*]{2}', '**', '\\textbf{', '}'))
+        patterns.append((r'[_]{2}', '__', '\\textbf{', '}'))
+        patterns.append((r'[\*]{1}', '*', '\\textit{', '}'))
+        patterns.append((r'[_]{1}', '_', '\\textit{', '}'))
+
+        for p,r,s,e in patterns:
+            m = self.findall(text, p)
+            for i in m:
+                if i > 0 and text[i-1] == '\\':
+                    m.remove(i)
+            alt = [s,e]
+            for i in range(len(m)//2*2-1, -1, -1):
+                text = self.replaceText(text, m[i], len(r), alt[i%2])
+
         return text
+
     def addHeading(self, line):
         depth = 0
         for i in range(3, 0, -1):
