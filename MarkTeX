@@ -47,6 +47,16 @@ class MarkTex:
                     if key != '':
                         self.defaultvars[key] = val
 
+    def generateDocument(self, file):
+        newDoc = LatexDocument(file, self)
+        self.documents.append(newDoc)
+
+        newDoc.readFrontMatter()
+        newDoc.handleVariables()
+        newDoc.writeContent()
+
+        return newDoc
+
 
 class LatexDocument:
     def __init__(self, inputFile, mtx):
@@ -103,7 +113,7 @@ class LatexDocument:
 
 
 
-    def writeVariables(self):
+    def handleVariables(self):
         self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
@@ -198,7 +208,7 @@ class LatexDocument:
         return self.preamble \
             + '\n\\begin{document}\n\n' \
             + self.content \
-            + '\n\\end{document}\n'
+            + '\n\\end{document}'
 
     def writeDocument(self):
         if not '.' in self.inputFile:
@@ -221,18 +231,14 @@ print('MarkTeX ' + VERSION)
 
 if not sys.argv[0].endswith('/MarkTeX'):
     print('You\'ve renamed the application...')
-print('Input file - ' + sys.argv[1] + ':')
 
 if not os.path.isfile(sys.argv[1]):
     print(sys.argv[1] + ' does not exist.')
     sys.exit(2)
 
-mtx = MarkTex()
-doc = LatexDocument(sys.argv[1], mtx)
-doc.readFrontMatter()
+print('Input file:' + sys.argv[1])
 
-doc.writeVariables()
-doc.writeContent()
-print('EOP---------------------------')
-print(doc.combineDocument())
+mtx = MarkTex()
+doc = mtx.generateDocument(sys.argv[1])
+
 doc.writeDocument()
