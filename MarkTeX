@@ -146,6 +146,8 @@ class LatexDocument:
                     raw = True
                 elif line == '\\end{latex}':
                     raw = False
+                elif line == '---':
+                    self.appendContent('\\hrule\n')
                 elif line.startswith('#'):
                     self.addHeading(line)
                 else:
