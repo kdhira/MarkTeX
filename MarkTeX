@@ -26,18 +26,22 @@ class MarkTex:
                     for line in fr:
                         if line.startswith('#') or not ':' in line:
                             continue
+
                         key, val = line.split(':', 1)
                         key, val = key.strip(), val.strip()
                         if key != '':
                             self.macros[macrotype][key] = val
             elif not os.path.exists(macromapfile):
                 open(macromapfile, 'x').close()
+
+
         defaultvarsfile = dir + 'defaults' + CONFIGEXT
         if os.path.isfile(defaultvarsfile):
             with open(defaultvarsfile, 'r') as fr:
                 for line in fr:
                     if line.startswith('#') or not ':' in line:
                         continue
+
                     key, val = line.split(':', 1)
                     key, val = key.strip(), val.strip()
                     if key != '':
@@ -52,11 +56,6 @@ class LatexDocument:
         self.vars = mtx.defaultvars.copy()
         self.inputFile = inputFile
 
-        self.documentvars = {
-            "document.maketitle" : '\\maketitle{}\n',
-            "document.avacado" : '\\avacado{}\n'
-        }
-
         try:
             self.fr = open(inputFile, 'r')
         except Exception as e:
@@ -68,6 +67,7 @@ class LatexDocument:
     def replaceText(self, source, start, length, text):
         if start+length > len(source):
             return source[:start] + text
+
         return source[:start] + text + source[start+length:]
 
     def addVariable(self, key, value):
@@ -80,7 +80,6 @@ class LatexDocument:
         self.content = self.content + text
 
     def readFrontMatter(self):
-        # Read front matter
         if self.fr.readline().rstrip() != '---':
             print("Error: Front matter started expected; not found.")
             sys.exit(3)
@@ -121,7 +120,6 @@ class LatexDocument:
                 f(self.marktex.macros[m][k.partition('.')[2]] + '\n')
 
     def writeContent(self):
-        #FLAGS
         raw = False
 
         line = self.fr.readline()
@@ -186,8 +184,6 @@ class LatexDocument:
             text = self.replaceText(text, len(text)-2, 2, '\\\\')
 
         return text.strip();
-
-
 
     def addHeading(self, line):
         depth = 0
