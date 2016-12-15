@@ -11,7 +11,7 @@ class MarkTex:
     def __init__(self):
         self.macros = {}
         self.defaultvars = {}
-        self.documents = []
+        # self.documents = []
         macrotypes = ['preamble', 'document']
 
         dir = os.path.expanduser('~/.MarkTeX/')
@@ -49,7 +49,7 @@ class MarkTex:
 
     def generateDocument(self, file):
         newDoc = LatexDocument(file, self)
-        self.documents.append(newDoc)
+        # self.documents.append(newDoc)
 
         newDoc.readFrontMatter()
         newDoc.handleVariables()
@@ -234,13 +234,23 @@ print('MarkTeX ' + VERSION)
 if not sys.argv[0].endswith('/MarkTeX'):
     print('You\'ve renamed the application...')
 
-if not os.path.isfile(sys.argv[1]):
-    print(sys.argv[1] + ' does not exist.')
-    sys.exit(2)
 
-print('Input file:' + sys.argv[1])
+verbose = False
+for i in range(1, len(sys.argv)):
+    arg = sys.argv[i]
+    if arg == '-v':
+        verbose = True
+        continue
+    if not os.path.isfile(arg):
+        print(arg + ' does not exist.')
+        continue
 
-mtx = MarkTex()
-doc = mtx.generateDocument(sys.argv[1])
+    print('Input file:' + arg)
 
-doc.writeDocument()
+    mtx = MarkTex()
+    doc = mtx.generateDocument(arg)
+
+    doc.writeDocument()
+
+    if verbose:
+        print(doc.combineDocument())
