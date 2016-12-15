@@ -15,6 +15,8 @@ class MarkTex:
         macrotypes = ['preamble', 'document']
 
         dir = os.path.expanduser('~/.MarkTeX/')
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
         for macrotype in macrotypes:
             self.macros[macrotype] = {}
@@ -28,7 +30,8 @@ class MarkTex:
                         key, val = key.strip(), val.strip()
                         if key != '':
                             self.macros[macrotype][key] = val
-
+            elif not os.path.exists(macromapfile):
+                open(macromapfile, 'x').close()
         defaultvarsfile = dir + 'defaults' + CONFIGEXT
         if os.path.isfile(defaultvarsfile):
             with open(defaultvarsfile, 'r') as fr:
