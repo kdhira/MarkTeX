@@ -5,12 +5,48 @@ import sys
 import re
 import math
 VERSION='v0.2'
+CONFIGEXT = '.mtconfig'
+
+class MarkTex:
+    def __init__(self):
+        self.macros = {}
+        self.defaultvars = {}
+        self.documents = []
+        macrotypes = ['preamble', 'document']
+
+        dir = os.path.expanduser('~/.MarkTeX/')
+
+        for macrotype in macrotypes:
+            self.macros[macrotype] = {}
+            macromapfile = dir + macrotype + CONFIGEXT
+            if os.path.isfile(macromapfile):
+                with open(macromapfile, 'r') as fr:
+                    for line in fr:
+                        if line.startswith('#') or not ':' in line:
+                            continue
+                        key, val = line.split(':', 1)
+                        key, val = key.strip(), val.strip()
+                        if key != '':
+                            self.macros[macrotype][key] = val
+
+        defaultvarsfile = dir + 'defaults' + CONFIGEXT
+        if os.path.isfile(defaultvarsfile):
+            with open(defaultvarsfile, 'r') as fr:
+                for line in fr:
+                    if line.startswith('#') or not ':' in line:
+                        continue
+                    key, val = line.split(':', 1)
+                    key, val = key.strip(), val.strip()
+                    if key != '':
+                        self.defaultvars[key] = val
+
 
 class LatexDocument:
-    def __init__(self, inputFile):
+    def __init__(self, inputFile, mtx):
+        self.marktex = mtx
         self.content = ''
         self.preamble = ''
-        self.vars = {}
+        self.vars = mtx.defaultvars.copy()
         self.inputFile = inputFile
 
         self.documentvars = {
@@ -22,7 +58,6 @@ class LatexDocument:
             self.fr = open(inputFile, 'r')
         except Exception as e:
             print(str(e))
-            sys.exit(2)
 
     def findall(self, text, pattern):
         return [m.start(0) for m in re.finditer('(?='+pattern+')', text)]
@@ -66,7 +101,7 @@ class LatexDocument:
 
 
 
-    def writePreamble(self):
+    def writeVariables(self):
         self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
@@ -74,8 +109,13 @@ class LatexDocument:
             if v in self.vars:
                 self.appendPreamble('\\' + v + '{' + self.vars[v] + '}\n')
 
-        for k in documentKeys:
-            self.appendContent(self.documentvars[k]);
+        map = {
+            'preamble': self.appendPreamble,
+            'document': self.appendContent
+        }
+        for m,f in map.items():
+            for k in {k:v for k,v in self.vars.items() if k.startswith(m + '.') and v in ['1', 'True', 'true', 'yes', 'Yes']}:
+                f(self.marktex.macros[m][k.partition('.')[2]] + '\n')
 
     def writeContent(self):
         #FLAGS
@@ -184,10 +224,15 @@ if not sys.argv[0].endswith('/MarkTeX'):
     print('You\'ve renamed the application...')
 print('Input file - ' + sys.argv[1] + ':')
 
-doc = LatexDocument(sys.argv[1])
+if not os.path.isfile(sys.argv[1]):
+    print(sys.argv[1] + ' does not exist.')
+    sys.exit(2)
+
+mtx = MarkTex()
+doc = LatexDocument(sys.argv[1], mtx)
 doc.readFrontMatter()
 
-doc.writePreamble()
+doc.writeVariables()
 doc.writeContent()
 print('EOP---------------------------')
 print(doc.combineDocument())
