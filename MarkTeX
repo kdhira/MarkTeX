@@ -157,7 +157,10 @@ class LatexDocument:
 
     def processText(self, text):
         text = text.rstrip('\n')
+        text = self.parseInlineFormatiing(text)
+        return self.escapeCharacters(text)
 
+    def parseInlineFormatiing(self, text):
         patterns = [];
         patterns.append((r'[\*]{3}', '***', '\\textbf{\\textit{', '}}'))
         patterns.append((r'[_]{3}', '___', '\\textbf{\\textit{', '}}'))
@@ -177,7 +180,7 @@ class LatexDocument:
             for i in range(len(m)//2*2-1, -1, -1):
                 text = self.replaceText(text, m[i], len(r), alt[i%2])
 
-        return self.escapeCharacters(text)
+        return text
 
     def escapeCharacters(self, text):
         toDelete = []
