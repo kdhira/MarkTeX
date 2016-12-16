@@ -228,15 +228,11 @@ class LatexDocument:
 
 # print(os.path.realpath(__file__))
 if len(sys.argv) < 2:
-    print('Usage: MarkTeX <input mtex file>.')
+    print('Usage: MarkTeX <input mtex files>.')
     sys.exit(1)
 
 # Print start message.
 print('MarkTeX ' + VERSION)
-
-if not sys.argv[0].endswith('/MarkTeX'):
-    print('You\'ve renamed the application...')
-
 
 verbose = False
 for i in range(1, len(sys.argv)):
