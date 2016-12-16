@@ -157,10 +157,10 @@ class LatexDocument:
 
     def processText(self, text):
         text = text.rstrip('\n')
-        text = self.parseInlineFormatiing(text)
+        text = self.parseInlineFormatting(text)
         return self.escapeCharacters(text)
 
-    def parseInlineFormatiing(self, text):
+    def parseInlineFormatting(self, text):
         patterns = [];
         patterns.append((r'[\*]{3}', '***', '\\textbf{\\textit{', '}}'))
         patterns.append((r'[_]{3}', '___', '\\textbf{\\textit{', '}}'))
