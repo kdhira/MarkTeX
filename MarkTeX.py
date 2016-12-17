@@ -55,6 +55,9 @@ class MarkTex:
         newDoc.handleVariables()
         newDoc.writeContent()
 
+        # Need to find a better place for this
+        newDoc.fr.close()
+
         return newDoc
 
 
@@ -131,27 +134,27 @@ class LatexDocument:
 
     def writeContent(self):
         raw = False
+        code = False
 
         line = self.fr.readline()
         while line != '':
             rawline = line
             line = line.rstrip()
-            if raw:
-                if line == '\\end{latex}':
-                    raw = False
-                else:
-                    self.appendContent(line + '\n')
+            if line == '```':
+                code = not code
+                self.appendContent('\\' + ('begin' if code else 'end') + '{verbatim}\n')
+            elif line == '\\begin{latex}':
+                raw = True
+            elif line == '\\end{latex}':
+                raw = False
+            elif raw or code:
+                self.appendContent(line + '\n')
+            elif line == '---':
+                self.appendContent('\\hrule\n')
+            elif line.startswith('#'):
+                self.addHeading(line)
             else:
-                if line == '\\begin{latex}':
-                    raw = True
-                elif line == '\\end{latex}':
-                    raw = False
-                elif line == '---':
-                    self.appendContent('\\hrule\n')
-                elif line.startswith('#'):
-                    self.addHeading(line)
-                else:
-                    self.appendContent(self.processText(rawline) + '\n')
+                self.appendContent(self.processText(rawline) + '\n')
 
             line = self.fr.readline()
 
@@ -213,7 +216,7 @@ class LatexDocument:
         return self.preamble \
             + '\n\\begin{document}\n\n' \
             + self.content \
-            + '\n\\end{document}'
+            + '\n\\end{document}\n'
 
     def writeDocument(self):
         if not '.' in self.inputFile:
