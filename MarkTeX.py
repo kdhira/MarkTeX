@@ -140,12 +140,12 @@ class LatexDocument:
         while line != '':
             rawline = line
             line = line.rstrip()
-            if line == '```':
+            if line == '```' and not raw:
                 code = not code
                 self.appendContent('\\' + ('begin' if code else 'end') + '{verbatim}\n')
-            elif line == '\\begin{latex}':
+            elif line == '\\begin{latex}' and not code:
                 raw = True
-            elif line == '\\end{latex}':
+            elif line == '\\end{latex}' and not code:
                 raw = False
             elif raw or code:
                 self.appendContent(line + '\n')
