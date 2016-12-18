@@ -94,34 +94,23 @@ class LatexDocument:
         except Exception as e:
             print(str(e))
 
-    def findall(self, text, pattern):
-        return [m.start(0) for m in re.finditer('(?='+pattern+')', text)]
-
-    def replaceText(self, source, start, length, text):
-        if start+length > len(source):
-            return source[:start] + text
-
-        return source[:start] + text + source[start+length:]
-
     def addVariable(self, key, value):
         self.vars[key] = value
 
     def appendPreamble(self, text):
-        self.preamble = self.preamble + text
+        self.preamble += text
 
     def appendContent(self, text):
-        self.content = self.content + text
+        self.content += text
 
     def readFrontMatter(self):
         if self.fr.readline().rstrip() != '---':
-            print("Error: Front matter started expected; not found.")
-            sys.exit(3)
+            return
 
         while True:
             line = self.fr.readline();
             if line == '':
-                print("Error: EOF before front matter end.")
-                sys.exit(4)
+                return
 
             line = line.rstrip()
             if line == '---':
