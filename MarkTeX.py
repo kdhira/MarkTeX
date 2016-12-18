@@ -4,13 +4,14 @@ import os
 import sys
 import re
 import math
+from collections import OrderedDict
 VERSION='v0.2'
 CONFIGEXT = '.mtconfig'
 
 class MarkTex:
     def __init__(self):
-        self.macros = {}
-        self.defaultvars = {}
+        self.macros = OrderedDict()
+        self.defaultvars = OrderedDict()
         # self.documents = []
 
         self.patterns = [];
@@ -150,7 +151,7 @@ class LatexDocument:
             'document': self.appendContent
         }
         for m,f in map.items():
-            for k in {k:v for k,v in self.vars.items() if k.startswith(m + '.') and v in ['1', 'True', 'true', 'yes', 'Yes']}:
+            for k in OrderedDict([(k,v) for k,v in self.vars.items() if k.startswith(m + '.') and v in ['1', 'True', 'true', 'yes', 'Yes']]):
                 f(self.marktex.macros[m][k.partition('.')[2]] + '\n')
 
     def writeContent(self):
@@ -186,7 +187,7 @@ class LatexDocument:
                 depth = i
                 break
 
-        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.parseText(line[depth:]) + '}\n')
+        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.parseText(line[depth:].lstrip()) + '}\n')
 
     def parseText(self, text):
         i = 0
