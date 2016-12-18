@@ -237,6 +237,8 @@ if len(sys.argv) < 2:
 # Print start message.
 print('MarkTeX ' + VERSION)
 
+mtx = MarkTex()
+
 verbose = False
 for i in range(1, len(sys.argv)):
     arg = sys.argv[i]
@@ -249,9 +251,7 @@ for i in range(1, len(sys.argv)):
 
     print('Input file:' + arg)
 
-    mtx = MarkTex()
     doc = mtx.generateDocument(arg)
-
     doc.writeDocument()
 
     if verbose:
