@@ -83,6 +83,11 @@ class LatexDocument:
         self.vars = mtx.defaultvars.copy()
         self.inputFile = inputFile
 
+        self.recursionMap = {
+            True: lambda x: self.parseText(x),
+            False: lambda x: x
+        }
+
         try:
             self.fr = open(inputFile, 'r')
         except Exception as e:
@@ -226,16 +231,11 @@ class LatexDocument:
                 depth = i
                 break
 
-        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.processText(line[depth:]) + '}\n')
+        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.parseText(line[depth:]) + '}\n')
 
     def parseText(self, text):
         i = 0
         genOut = ''
-
-        recursionMap = {
-            True: lambda x: self.parseText(x),
-            False: lambda x: x
-        }
 
         while i < len(text):
             if text[i] == '\\':
@@ -253,10 +253,7 @@ class LatexDocument:
                         matchFound = True
                         assignOrder = order + [0]*(match.lastindex-len(order))
                         for j in range(match.lastindex):
-                            inner = match.group(assignOrder[j]+1)
-                            if (subparse):
-                                inner = self.parseText(inner)
-                            genOut += wrappers[j][0] + inner + wrappers[j][1]
+                            genOut += wrappers[j][0] + self.recursionMap[subparse](match.group(assignOrder[j]+1)) + wrappers[j][1]
                         i += match.end()
                         break
                 if not matchFound:
