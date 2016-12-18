@@ -33,7 +33,7 @@ MarkTeX should be able to parse the general markup rules, like those in the mark
     \item Links
     \begin{itemize}
         \item \verb![link-url]! should convert to \verb!\url{link-url}!.
-        \item \verb![link-url](link-text)! should convert to \newline \verb!\href{link-url}{link-text}!.
+        \item \verb![link-text](link-url)! should convert to \newline \verb!\href{link-url}{link-text}!.
         \item URLs that are written without any wrapping should attempt to be parse to links.
         \item Links should also work with mailto links.
     \end{itemize}
