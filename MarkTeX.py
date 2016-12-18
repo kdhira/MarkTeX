@@ -218,7 +218,7 @@ class LatexDocument:
             + self.content \
             + '\n\\end{document}\n'
 
-    def writeDocument(self):
+    def writeToFile(self):
         if not '.' in self.inputFile:
             newFile = self.inputFile + '.tex'
         else:
@@ -252,7 +252,7 @@ for i in range(1, len(sys.argv)):
     print('Input file:' + arg)
 
     doc = mtx.generateDocument(arg)
-    doc.writeDocument()
+    doc.writeToFile()
 
     if verbose:
         print(doc.combineDocument())
