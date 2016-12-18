@@ -12,6 +12,20 @@ class MarkTex:
         self.macros = {}
         self.defaultvars = {}
         # self.documents = []
+
+        self.patterns = [];
+        self.patterns.append((r'\[(.*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
+        self.patterns.append((r'\[(.*?)\]', (('\\url{\\underline{', '}}'),), False, [0]))
+        self.patterns.append((r'\*{3}(.*?)\*{3}', (('\\textbf{\\textit{', '}}'),), True, [0]))
+        self.patterns.append((r'\*{2}(.*?)\*{2}', (('\\textbf{', '}'),), True, [0]))
+        self.patterns.append((r'\*{1}(.*?)\*{1}', (('\\textit{', '}'),), True, [0]))
+        self.patterns.append((r'_{3}(.*?)_{3}', (('\\textbf{\\textit{', '}}'),), True, [0]))
+        self.patterns.append((r'_{2}(.*?)_{2}', (('\\textbf{', '}'),), True, [0]))
+        self.patterns.append((r'_{1}(.*?)_{1}', (('\\textit{', '}'),), True, [0]))
+        self.patterns.append((r'`{1}(.*?)`{1}', (('\\texttt{', '}'),), True, [0]))
+
+        self.escapeChars = '[]()*_`'
+
         macrotypes = ['preamble', 'document']
 
         dir = os.path.expanduser('~/.MarkTeX/')
@@ -118,6 +132,8 @@ class LatexDocument:
 
     def handleVariables(self):
         self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
+        self.appendPreamble('\\usepackage{hyperref}\n')
+
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
         for v in ['title', 'author', 'date']:
@@ -154,7 +170,7 @@ class LatexDocument:
             elif line.startswith('#'):
                 self.addHeading(line)
             else:
-                self.appendContent(self.processText(rawline) + '\n')
+                self.appendContent(self.parseText(rawline))
 
             line = self.fr.readline()
 
@@ -211,6 +227,43 @@ class LatexDocument:
                 break
 
         self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.processText(line[depth:]) + '}\n')
+
+    def parseText(self, text):
+        i = 0
+        genOut = ''
+
+        recursionMap = {
+            True: lambda x: self.parseText(x),
+            False: lambda x: x
+        }
+
+        while i < len(text):
+            if text[i] == '\\':
+                if i+1 < len(text) and text[i+1] in self.marktex.escapeChars:
+                    genOut += text[i+1]
+                    i += 2
+                else:
+                    genOut += text[i]
+                    i += 1
+            else:
+                matchFound = False
+                for regex, wrappers, subparse, order in self.marktex.patterns:
+                    match = re.match(regex, text[i:])
+                    if match:
+                        matchFound = True
+                        assignOrder = order + [0]*(match.lastindex-len(order))
+                        for j in range(match.lastindex):
+                            inner = match.group(assignOrder[j]+1)
+                            if (subparse):
+                                inner = self.parseText(inner)
+                            genOut += wrappers[j][0] + inner + wrappers[j][1]
+                        i += match.end()
+                        break
+                if not matchFound:
+                    genOut += text[i]
+                    i += 1
+
+        return genOut
 
     def combineDocument(self):
         return self.preamble \
