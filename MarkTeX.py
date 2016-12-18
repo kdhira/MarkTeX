@@ -179,51 +179,6 @@ class LatexDocument:
 
             line = self.fr.readline()
 
-    def processText(self, text):
-        text = text.rstrip('\n')
-        text = self.parseInlineFormatting(text)
-        return self.escapeCharacters(text)
-
-    def parseInlineFormatting(self, text):
-        patterns = [];
-        patterns.append((r'[\*]{3}', '***', '\\textbf{\\textit{', '}}'))
-        patterns.append((r'[_]{3}', '___', '\\textbf{\\textit{', '}}'))
-        patterns.append((r'[\*]{2}', '**', '\\textbf{', '}'))
-        patterns.append((r'[_]{2}', '__', '\\textbf{', '}'))
-        patterns.append((r'[\*]{1}', '*', '\\textit{', '}'))
-        patterns.append((r'[_]{1}', '_', '\\textit{', '}'))
-        patterns.append((r'[`]{1}', '`', '\\texttt{', '}'))
-
-        for p,r,s,e in patterns:
-            m = self.findall(text, p)
-            for i in m:
-                if i > 0 and text[i-1] in '\\\0':
-                    m.remove(i)
-                    text = self.replaceText(text, i-1, 1, '\0')
-            alt = [s,e]
-            for i in range(len(m)//2*2-1, -1, -1):
-                text = self.replaceText(text, m[i], len(r), alt[i%2])
-
-        return text
-
-    def escapeCharacters(self, text):
-        toDelete = []
-        i = 0
-        while i < len(text):
-            if text[i] == '\0':
-                if i + 1 < len(text) and text[i:i+2] == '\\\\':
-                    break
-                toDelete.append(i)
-                i += 1
-            i += 1
-
-        text = ''.join([text[i] for i in range(len(text)) if not i in toDelete])
-
-        if text.endswith('  '):
-            text = self.replaceText(text, len(text)-2, 2, '\\\\')
-
-        return text.strip();
-
     def addHeading(self, line):
         depth = 0
         for i in range(3, 0, -1):
