@@ -168,7 +168,10 @@ class LatexDocument:
             elif line == '\\end{latex}' and not code:
                 raw = False
             elif raw or code:
-                self.appendContent(line + '\n')
+                if code and line == '\\```':
+                    self.appendContent('```\n')
+                else:
+                    self.appendContent(line + '\n')
             elif line == '---':
                 self.appendContent('\\hrule\n')
             elif headingMatch:
