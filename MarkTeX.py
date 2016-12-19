@@ -5,7 +5,7 @@ import sys
 import re
 import math
 from collections import OrderedDict
-VERSION='v0.2'
+VERSION='v1.0'
 CONFIGEXT = '.mtconfig'
 
 class MarkTex:
@@ -104,7 +104,9 @@ class LatexDocument:
         self.content += text
 
     def readFrontMatter(self):
+        pos = self.fr.tell()
         if self.fr.readline().rstrip() != '---':
+            self.fr.seek(pos)
             return
 
         while True:
@@ -146,6 +148,7 @@ class LatexDocument:
     def writeContent(self):
         raw = False
         code = False
+        listHierarchy = []
 
         line = self.fr.readline()
         while line != '':
@@ -165,9 +168,27 @@ class LatexDocument:
             elif line.startswith('#'):
                 self.addHeading(line)
             else:
-                self.appendContent(self.parseText(rawline))
+                match = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
+                if match:
+                    depth = len(match.group(1).replace('\t', '    '))//4 + 1
+                    listType = 'itemize' if match.group(2) == '-' else 'enumerate'
+                    if depth > len(listHierarchy):
+                        while len(listHierarchy) < depth:
+                            self.appendContent('\\begin{' + listType + '}\n')
+                            listHierarchy.append(listType)
+                    elif depth < len(listHierarchy):
+                        while depth < len(listHierarchy):
+                            self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
+                    self.appendContent('\\item ' + self.parseText(match.group(3))+ '\n')
+                else:
+                    while len(listHierarchy) > 0:
+                        self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
+                    self.appendContent(self.parseText(rawline))
 
             line = self.fr.readline()
+
+        while len(listHierarchy) > 0:
+            self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
 
     def addHeading(self, line):
         depth = 0
