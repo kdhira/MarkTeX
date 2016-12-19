@@ -16,7 +16,9 @@ class MarkTex:
 
         self.patterns = [];
         self.patterns.append((r'\[(.*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
-        self.patterns.append((r'\[(.*?)\]', (('\\url{\\underline{', '}}'),), False, [0]))
+        self.patterns.append((r'\[(.*?)\]', (('\\href{', '}'), ('{\\underline{', '}}')), False, [0, 0]))
+        self.patterns.append((r'([a-z]+:\/\/[a-z]+.[a-z]+(?:.[a-z]+)*(?:\/\w+)*(?:\/|(?:\w+.[a-z0-9]+))?(?:\?=\S*)?)', (('\\href{', '}'), ('{', '}')), False, [0, 0] ))
+        self.patterns.append((r"(?:mailto\:)?([a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+(?:\.[a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+)*@[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9]+)+)", (('\\href{mailto:', '}'), ('{', '}')), False, [0, 0] ))
         self.patterns.append((r'\*{3}(.*?)\*{3}', (('\\textbf{\\textit{', '}}'),), True, [0]))
         self.patterns.append((r'\*{2}(.*?)\*{2}', (('\\textbf{', '}'),), True, [0]))
         self.patterns.append((r'\*{1}(.*?)\*{1}', (('\\textit{', '}'),), True, [0]))
@@ -211,7 +213,7 @@ class LatexDocument:
                     if match:
                         matchFound = True
                         assignOrder = order + [0]*(match.lastindex-len(order))
-                        for j in range(match.lastindex):
+                        for j in range(len(assignOrder)):
                             genOut += wrappers[j][0] + self.recursionMap[subparse](match.group(assignOrder[j]+1)) + wrappers[j][1]
                         i += match.end()
                         break
