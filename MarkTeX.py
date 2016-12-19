@@ -1,24 +1,34 @@
 #!/usr/bin/env python3
 
+# MarkTeX: Markdown to LaTeX parser.
+# Author: Kevin Hira, http://github.com/kdhira/MarkTeX
+
 import os
 import sys
 import re
 import math
 from collections import OrderedDict
+
+# Define global constants.
 VERSION='v1.0'
 CONFIGEXT = '.mtconfig'
 
 class MarkTex:
     def __init__(self):
+        # Set up dictionaries to store macros and variables from front matter.
         self.macros = OrderedDict()
         self.defaultvars = OrderedDict()
-        # self.documents = []
 
+        # Build up pattern bank of parsable text.
         self.patterns = [];
+
+        # Patterns for links.
         self.patterns.append((r'\[(.*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
         self.patterns.append((r'\[(.*?)\]', (('\\href{', '}'), ('{\\underline{', '}}')), False, [0, 0]))
         self.patterns.append((r'([a-z]+:\/\/[a-z]+.[a-z]+(?:.[a-z]+)*(?:\/\w+)*(?:\/|(?:\w+.[a-z0-9]+))?(?:\?=\S*)?)', (('\\href{', '}'), ('{', '}')), False, [0, 0] ))
         self.patterns.append((r"(?:mailto\:)?([a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+(?:\.[a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+)*@[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9]+)+)", (('\\href{mailto:', '}'), ('{', '}')), False, [0, 0] ))
+
+        # Patterns for bold, italic, code.
         self.patterns.append((r'\*{3}(.*?)\*{3}', (('\\textbf{\\textit{', '}}'),), True, [0]))
         self.patterns.append((r'\*{2}(.*?)\*{2}', (('\\textbf{', '}'),), True, [0]))
         self.patterns.append((r'\*{1}(.*?)\*{1}', (('\\textit{', '}'),), True, [0]))
@@ -27,8 +37,10 @@ class MarkTex:
         self.patterns.append((r'_{1}(.*?)_{1}', (('\\textit{', '}'),), True, [0]))
         self.patterns.append((r'`{1}(.*?)`{1}', (('\\texttt{', '}'),), True, [0]))
 
+        # List of characters that will be escaped when preceeded with a backslash.
         self.escapeChars = '[]()*_`\\'
 
+        # Define and start to read through default macros.
         macrotypes = ['preamble', 'document']
 
         dir = os.path.expanduser('~/.MarkTeX/')
@@ -66,13 +78,11 @@ class MarkTex:
 
     def generateDocument(self, file):
         newDoc = LatexDocument(file, self)
-        # self.documents.append(newDoc)
 
         newDoc.readFrontMatter()
         newDoc.handleVariables()
         newDoc.writeContent()
 
-        # Need to find a better place for this
         newDoc.fr.close()
 
         return newDoc
