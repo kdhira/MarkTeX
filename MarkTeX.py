@@ -152,15 +152,19 @@ class LatexDocument:
         code = False
         listHierarchy = []
 
-        line = self.fr.readline()
-        while line != '':
+        rawline = 'null'
+        while rawline != '':
+            line = self.fr.readline()
             rawline = line
             line = line.rstrip()
 
             headingMatch = re.match(r'(#{1,3})([ ]?)(.+)', line)
             listMatch = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
-
-            if line == '```' and not raw:
+            if line.strip().startswith('<!--'):
+                while line != '' and not line.strip().endswith('-->'):
+                    line = self.fr.readline()
+                continue
+            elif line == '```' and not raw:
                 code = not code
                 self.appendContent('\\' + ('begin' if code else 'end') + '{verbatim}\n')
             elif line == '\\begin{latex}' and not code:
@@ -192,7 +196,6 @@ class LatexDocument:
                     self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
                 self.appendContent(self.parseText(rawline))
 
-            line = self.fr.readline()
 
         while len(listHierarchy) > 0:
             self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
