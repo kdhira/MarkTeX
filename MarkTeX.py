@@ -27,7 +27,7 @@ class MarkTex:
         self.patterns.append((r'_{1}(.*?)_{1}', (('\\textit{', '}'),), True, [0]))
         self.patterns.append((r'`{1}(.*?)`{1}', (('\\texttt{', '}'),), True, [0]))
 
-        self.escapeChars = '[]()*_`'
+        self.escapeChars = '[]()*_`\\'
 
         macrotypes = ['preamble', 'document']
 
@@ -202,7 +202,7 @@ class LatexDocument:
         genOut = ''
 
         while i < len(text):
-            if text[i] == '\\':
+            if text[i] == '\\' and not re.match(r'\\\\\s*', text[i:]):
                 if i+1 < len(text) and text[i+1] in self.marktex.escapeChars:
                     genOut += text[i+1]
                     i += 2
@@ -213,7 +213,7 @@ class LatexDocument:
                 matchFound = False
                 for regex, wrappers, subparse, order in self.marktex.patterns:
                     match = re.match(regex, text[i:])
-                    if match:
+                    if match and not any(match.group(i).endswith('\\') and not match.group(i).endswith('\\\\') for i in range(1, match.lastindex+1)):
                         matchFound = True
                         assignOrder = order + [0]*(match.lastindex-len(order))
                         for j in range(len(assignOrder)):
