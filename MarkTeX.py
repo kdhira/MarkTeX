@@ -154,6 +154,10 @@ class LatexDocument:
         while line != '':
             rawline = line
             line = line.rstrip()
+
+            headingMatch = re.match(r'(#{1,3})([ ]?)(.+)', line)
+            listMatch = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
+
             if line == '```' and not raw:
                 code = not code
                 self.appendContent('\\' + ('begin' if code else 'end') + '{verbatim}\n')
@@ -165,39 +169,28 @@ class LatexDocument:
                 self.appendContent(line + '\n')
             elif line == '---':
                 self.appendContent('\\hrule\n')
-            elif line.startswith('#'):
-                self.addHeading(line)
-            else:
-                match = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
-                if match:
-                    depth = len(match.group(1).replace('\t', '    '))//4 + 1
-                    listType = 'itemize' if match.group(2) == '-' else 'enumerate'
-                    if depth > len(listHierarchy):
-                        while len(listHierarchy) < depth:
-                            self.appendContent('\\begin{' + listType + '}\n')
-                            listHierarchy.append(listType)
-                    elif depth < len(listHierarchy):
-                        while depth < len(listHierarchy):
-                            self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
-                    self.appendContent('\\item ' + self.parseText(match.group(3))+ '\n')
-                else:
-                    while len(listHierarchy) > 0:
+            elif headingMatch:
+                self.appendContent('\\' + (len(headingMatch.group(1))-1)*'sub' + 'section{' + self.parseText(headingMatch.group(3)) + '}\n')
+            elif listMatch:
+                depth = len(listMatch.group(1).replace('\t', '    '))//4 + 1
+                listType = 'itemize' if listMatch.group(2) == '-' else 'enumerate'
+                if depth > len(listHierarchy):
+                    while len(listHierarchy) < depth:
+                        self.appendContent('\\begin{' + listType + '}\n')
+                        listHierarchy.append(listType)
+                elif depth < len(listHierarchy):
+                    while depth < len(listHierarchy):
                         self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
-                    self.appendContent(self.parseText(rawline))
+                self.appendContent('\\item ' + self.parseText(listMatch.group(3))+ '\n')
+            else:
+                while len(listHierarchy) > 0:
+                    self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
+                self.appendContent(self.parseText(rawline))
 
             line = self.fr.readline()
 
         while len(listHierarchy) > 0:
             self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
-
-    def addHeading(self, line):
-        depth = 0
-        for i in range(3, 0, -1):
-            if line.startswith(i*'#'):
-                depth = i
-                break
-
-        self.appendContent('\\'+ (depth-1)*'sub' + 'section{' + self.parseText(line[depth:].lstrip()) + '}\n')
 
     def parseText(self, text):
         i = 0
