@@ -141,7 +141,7 @@ class LatexDocument:
 
     def handleVariables(self):
         self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
-        self.appendPreamble('\\usepackage{hyperref}\n')
+        self.appendPreamble('\\usepackage{hyperref, listings}\n')
 
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
