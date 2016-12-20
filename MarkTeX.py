@@ -23,7 +23,7 @@ class MarkTex:
         self.patterns = [];
 
         # Patterns for links.
-        self.patterns.append((r'\[(.*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
+        self.patterns.append((r'\[([^\[]*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
         self.patterns.append((r'\[(.*?)\]', (('\\href{', '}'), ('{\\underline{', '}}')), False, [0, 0]))
         self.patterns.append((r'([a-z]+:\/\/[a-z]+.[a-z]+(?:.[a-z]+)*(?:\/\w+)*(?:\/|(?:\w+.[a-z0-9]+))?(?:\?=\S*)?)', (('\\href{', '}'), ('{', '}')), False, [0, 0] ))
         self.patterns.append((r"(?:mailto\:)?([a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+(?:\.[a-zA-Z0-9!#\$%&'\*+\-\/=\?^_`\{|\}~]+)*@[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9]+)+)", (('\\href{mailto:', '}'), ('{', '}')), False, [0, 0] ))
@@ -141,7 +141,7 @@ class LatexDocument:
 
     def handleVariables(self):
         self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
-        self.appendPreamble('\\usepackage{hyperref, listings}\n')
+        self.appendPreamble('\\usepackage{hyperref, listings} \\lstset{breaklines=true, basicstyle={\\ttfamily}}\n')
 
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
@@ -161,6 +161,8 @@ class LatexDocument:
         raw = False
         code = False
         listHierarchy = []
+        # codeEnv = 'verbatim'
+        codeEnv = 'lstlisting'
 
         rawline = 'null'
         while rawline != '':
@@ -176,7 +178,7 @@ class LatexDocument:
                 continue
             elif line == '```' and not raw:
                 code = not code
-                self.appendContent('\\' + ('begin' if code else 'end') + '{verbatim}\n')
+                self.appendContent('\\' + ('begin' if code else 'end') + '{'+ codeEnv +'}\n')
             elif line == '\\begin{latex}' and not code:
                 raw = True
             elif line == '\\end{latex}' and not code:
