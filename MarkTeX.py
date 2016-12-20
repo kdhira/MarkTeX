@@ -166,7 +166,7 @@ class LatexDocument:
         while rawline != '':
             line = self.fr.readline()
             rawline = line
-            line = line.rstrip()
+            line = line.rstrip('\r\n')
 
             headingMatch = re.match(r'(#{1,3})([ ]?)(.+)', line)
             listMatch = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
@@ -182,10 +182,7 @@ class LatexDocument:
             elif line == '\\end{latex}' and not code:
                 raw = False
             elif raw or code:
-                if code and line == '\\```':
-                    self.appendContent('```\n')
-                else:
-                    self.appendContent(line + '\n')
+                self.appendContent(line + '\n')
             elif line == '---':
                 self.appendContent('\\hrule\n')
             elif headingMatch:
@@ -204,7 +201,7 @@ class LatexDocument:
             else:
                 while len(listHierarchy) > 0:
                     self.appendContent('\\end{' + listHierarchy.pop() + '}\n')
-                self.appendContent(self.parseText(rawline))
+                self.appendContent(self.parseText(line) + '\n')
 
 
         while len(listHierarchy) > 0:
@@ -223,21 +220,25 @@ class LatexDocument:
                     genOut += text[i]
                     i += 1
             else:
-                matchFound = False
                 for regex, wrappers, subparse, order in self.marktex.patterns:
                     match = re.match(regex, text[i:])
-                    if match and not any(match.group(i).endswith('\\') and not match.group(i).endswith('\\\\') for i in range(1, match.lastindex+1)):
-                        matchFound = True
+                    if match and not any(self.escapedClosing(match.group(i)) for i in range(1, match.lastindex+1)):
                         assignOrder = order + [0]*(match.lastindex-len(order))
                         for j in range(len(assignOrder)):
                             genOut += wrappers[j][0] + self.recursionMap[subparse](match.group(assignOrder[j]+1)) + wrappers[j][1]
                         i += match.end()
                         break
-                if not matchFound:
+                else:
                     genOut += text[i]
                     i += 1
 
         return genOut
+
+    def escapedClosing(self, text):
+        match = re.match(r'^([^\\]+[\\]+)*([^\\]+([\\]+))$', text)
+        if match and len(match.group(3))%2 == 1:
+            return True
+        return False
 
     def combineDocument(self):
         return self.preamble \
