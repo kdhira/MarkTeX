@@ -168,7 +168,7 @@ class LatexDocument:
             rawline = line
             line = line.rstrip('\r\n')
 
-            headingMatch = re.match(r'(#{1,3})([ ]?)(.+)', line)
+            headingMatch = re.match(r'(#{1,3})(\*?)([ ]?)(.+)', line)
             listMatch = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
             if line.strip().startswith('<!--'):
                 while line != '' and not line.strip().endswith('-->'):
@@ -186,7 +186,7 @@ class LatexDocument:
             elif line == '---':
                 self.appendContent('\\hrule\n')
             elif headingMatch:
-                self.appendContent('\\' + (len(headingMatch.group(1))-1)*'sub' + 'section{' + self.parseText(headingMatch.group(3)) + '}\n')
+                self.appendContent('\\' + (len(headingMatch.group(1))-1)*'sub' + 'section' + headingMatch.group(2) + '{' + self.parseText(headingMatch.group(4)) + '}\n')
             elif listMatch:
                 depth = len(listMatch.group(1).replace('\t', '    '))//4 + 1
                 listType = 'itemize' if listMatch.group(2) == '-' else 'enumerate'
