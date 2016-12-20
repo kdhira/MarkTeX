@@ -262,25 +262,36 @@ if len(sys.argv) < 2:
     print('Usage: MarkTeX <input mtex files>.')
     sys.exit(1)
 
+verbose = False
+toTerminal = False
+
+for arg in [sys.argv[i] for i in range(1, len(sys.argv)) if sys.argv[i].startswith('-')]:
+    if 'v' in arg:
+        verbose = True
+    if 't' in arg:
+        toTerminal = True
+
 # Print start message.
-print('MarkTeX ' + VERSION)
+if not toTerminal:
+    print('MarkTeX ' + VERSION)
 
 mtx = MarkTex()
 
-verbose = False
 for i in range(1, len(sys.argv)):
     arg = sys.argv[i]
-    if arg == '-v':
-        verbose = True
+    if arg.startswith('-'):
         continue
     if not os.path.isfile(arg):
-        print(arg + ' does not exist.')
+        if not toTerminal:
+            print(arg + ' does not exist.')
         continue
 
-    print('Input file:' + arg)
+    if not toTerminal:
+        print('Input file:' + arg)
 
     doc = mtx.generateDocument(arg)
-    doc.writeToFile()
 
-    if verbose:
+    if toTerminal:
         print(doc.combineDocument())
+    else:
+        doc.writeToFile()
