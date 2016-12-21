@@ -22,6 +22,10 @@ class MarkTex:
         # Build up pattern bank of parsable text.
         self.patterns = [];
 
+        # Pattern for maths mode.
+        self.patterns.append((r'\$\$(.*?)\$\$', (('$$', '$$'),), False, [0]))
+        self.patterns.append((r'\$\$(.*?)\$\$', (('$$', '$$'),), False, [0]))
+
         # Patterns for links.
         self.patterns.append((r'\[([^\[]*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
         self.patterns.append((r'\[(.*?)\]', (('\\href{', '}'), ('{\\underline{', '}}')), False, [0, 0]))
