@@ -97,6 +97,7 @@ class LatexDocument:
         self.marktex = mtx
         self.content = ''
         self.preamble = ''
+        self.customPreamble = ''
         self.vars = mtx.defaultvars.copy()
         self.inputFile = inputFile
 
@@ -133,13 +134,17 @@ class LatexDocument:
             line = line.rstrip()
             if line == '---':
                 break
+            line = line.strip()
 
-            if not line.startswith('#') and ':' in line:
-                key,val = line.split(':', 1)
-                key = key.strip()
-                val = val.strip()
-                if key != '':
-                    self.addVariable(key, val)
+            if not line.startswith('#'):
+                if ':' in line:
+                    key,val = line.split(':', 1)
+                    key = key.strip()
+                    val = val.strip()
+                    if key != '':
+                        self.addVariable(key, val)
+                elif line.startswith('\\'):
+                    self.customPreamble += line + '\n'
 
 
 
@@ -248,6 +253,7 @@ class LatexDocument:
 
     def combineDocument(self):
         return self.preamble \
+            + self.customPreamble \
             + '\n\\begin{document}\n\n' \
             + self.content \
             + '\n\\end{document}\n'
