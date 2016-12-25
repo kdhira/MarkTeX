@@ -45,40 +45,43 @@ class MarkTex:
         self.escapeChars = '[]()*_`\\'
 
         # Define and start to read through default macros.
-        macrotypes = ['preamble', 'document']
+        macrotypes = ['preamble', 'document', 'defaults']
 
         dir = os.path.expanduser('~/.MarkTeX/')
         if not os.path.exists(dir):
             os.makedirs(dir)
 
         for macrotype in macrotypes:
+            # Define sub-dictionary to store macros.
             self.macros[macrotype] = {}
+
+            # Build file path to the config file.
             macromapfile = dir + macrotype + CONFIGEXT
+
+            # Check if this file exists.
             if os.path.isfile(macromapfile):
+                # Open the file and start reading in lines.
                 with open(macromapfile, 'r') as fr:
                     for line in fr:
+
+                        # Check if the line is in the right format, ie doesn't start with a # (comments) and has a colon.
                         if line.startswith('#') or not ':' in line:
                             continue
 
+                        # Split and retrieve key and value of the pair.
                         key, val = line.split(':', 1)
                         key, val = key.strip(), val.strip()
+
+                        # Validate for a viable key.
                         if key != '':
                             self.macros[macrotype][key] = val
+
+            # If the file doesn't exist, create one and don't do anything with it.
             elif not os.path.exists(macromapfile):
                 open(macromapfile, 'x').close()
 
-
-        defaultvarsfile = dir + 'defaults' + CONFIGEXT
-        if os.path.isfile(defaultvarsfile):
-            with open(defaultvarsfile, 'r') as fr:
-                for line in fr:
-                    if line.startswith('#') or not ':' in line:
-                        continue
-
-                    key, val = line.split(':', 1)
-                    key, val = key.strip(), val.strip()
-                    if key != '':
-                        self.defaultvars[key] = val
+        # Set default variables dictionary for LatexDocuments to base off.
+        self.defaultvars = self.macros['defaults']
 
     def generateDocument(self, file):
         newDoc = LatexDocument(file, self)
