@@ -83,13 +83,14 @@ class MarkTex:
         # Set default variables dictionary for LatexDocuments to base off.
         self.defaultvars = self.macros['defaults']
 
-        '''
+
+    def generateDocument(self, file):
+        """
         generateDocument() simply pieces the sub operations of compiling a document into one method.
         Some called could (maybe should) be chained or refactored into the LatexDocument itself.
 
         Process: Read front matter section, process front matter and write premable of document, parse content of document.
-        '''
-    def generateDocument(self, file):
+        """
         newDoc = LatexDocument(file, self)
 
         newDoc.readFrontMatter()
