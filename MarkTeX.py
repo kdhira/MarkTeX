@@ -53,7 +53,7 @@ class MarkTex:
 
         for macrotype in macrotypes:
             # Define sub-dictionary to store macros.
-            self.macros[macrotype] = {}
+            self.macros[macrotype] = OrderedDict()
 
             # Build file path to the config file.
             macromapfile = dir + macrotype + CONFIGEXT
@@ -87,7 +87,7 @@ class MarkTex:
     def generateDocument(self, file):
         """
         generateDocument() simply pieces the sub operations of compiling a document into one method.
-        Some called could (maybe should) be chained or refactored into the LatexDocument itself.
+        Some methods called could (maybe should) be chained or refactored into the LatexDocument itself.
 
         Process: Read front matter section, process front matter and write premable of document, parse content of document.
         """
