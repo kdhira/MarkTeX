@@ -105,6 +105,7 @@ class MarkTex:
 class LatexDocument:
     def __init__(self, inputFile, mtx):
         self.marktex = mtx
+        self.documentclass = '\\documentclass[10pt,a4paper]{article}'
         self.content = ''
         self.preamble = ''
         self.customPreamble = ''
@@ -147,19 +148,23 @@ class LatexDocument:
             line = line.strip()
 
             if not line.startswith('#'):
-                if ':' in line:
+                if line.startswith('\\documentclass'):
+                    match = re.match(r'^\\documentclass(\[(.*?)\])?\{[a-z]+\}', line)
+                    if match:
+                        self.documentclass = line
+                elif line.startswith('\\'):
+                    self.customPreamble += line + '\n'
+                elif ':' in line:
                     key,val = line.split(':', 1)
                     key = key.strip()
                     val = val.strip()
                     if key != '':
                         self.addVariable(key, val)
-                elif line.startswith('\\'):
-                    self.customPreamble += line + '\n'
 
 
 
     def handleVariables(self):
-        self.appendPreamble('\\documentclass[10pt,a4paper]{article}\n')
+        self.appendPreamble(self.documentclass + '\n')
         self.appendPreamble('\\usepackage{hyperref, listings} \\lstset{breaklines=true, basicstyle={\\ttfamily}}\n')
 
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
