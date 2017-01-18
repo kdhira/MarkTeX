@@ -111,6 +111,7 @@ class LatexDocument:
         self.customPreamble = ''
         self.vars = mtx.defaultvars.copy()
         self.inputFile = inputFile
+        self.inputDir = os.path.dirname(os.path.realpath(self.inputFile))
 
         self.recursionMap = {
             True: lambda x: self.parseText(x),
@@ -196,6 +197,7 @@ class LatexDocument:
 
             headingMatch = re.match(r'(#{1,3})(\*?)([ ]?)(.+)', line)
             listMatch = re.match(r'(\s*)(\d+\.|-)[ ]?(.+)', line)
+            externalMatch = re.match(r'<<(.+)>>', line)
             if line.strip().startswith('<!--'):
                 while line != '' and not line.strip().endswith('-->'):
                     line = self.fr.readline()
@@ -211,6 +213,8 @@ class LatexDocument:
                 self.appendContent(line + '\n')
             elif line == '---':
                 self.appendContent('\\hrule\n')
+            elif externalMatch and os.path.isfile(((self.inputDir + '/') if not externalMatch.group(1)[0] in '/~' else '') + externalMatch.group(1)):
+                self.appendFile(((self.inputDir + '/') if not externalMatch.group(1)[0] in '/~' else '') + externalMatch.group(1))
             elif headingMatch:
                 self.appendContent('\\' + (len(headingMatch.group(1))-1)*'sub' + 'section' + headingMatch.group(2) + '{' + self.parseText(headingMatch.group(4)) + '}\n')
             elif listMatch:
@@ -265,6 +269,11 @@ class LatexDocument:
         if match and len(match.group(3))%2 == 1:
             return True
         return False
+
+    def appendFile(self, filename):
+        with open(filename, 'r') as extF:
+            for line in extF:
+                self.appendContent(line)
 
     def combineDocument(self):
         return self.preamble \
