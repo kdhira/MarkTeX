@@ -26,6 +26,9 @@ class MarkTex:
         self.patterns.append((r'\$\$(.*?)\$\$', (('$$', '$$'),), False, [0]))
         self.patterns.append((r'\$\$(.*?)\$\$', (('$$', '$$'),), False, [0]))
 
+        # Patterns for images
+        self.patterns.append((r'!\[(.*?)\]', (('\\includegraphics[width=\\textwidth]{', '}'),), False, [0]))
+
         # Patterns for links.
         self.patterns.append((r'\[([^\[]*?)\]\("(.*?)"\)', (('\\href{', '}'), ('{\\underline{', '}}')), False, [1, 0]))
         self.patterns.append((r'\[(.*?)\]', (('\\href{', '}'), ('{\\underline{', '}}')), False, [0, 0]))
@@ -166,7 +169,7 @@ class LatexDocument:
 
     def handleVariables(self):
         self.appendPreamble(self.documentclass + '\n')
-        self.appendPreamble('\\usepackage{hyperref, listings} \\lstset{breaklines=true, basicstyle={\\ttfamily}}\n')
+        self.appendPreamble('\\usepackage{hyperref, listings, graphicx} \\lstset{breaklines=true, basicstyle={\\ttfamily}}\n')
 
         documentKeys = {k:v for k,v in self.vars.items() if k.startswith('document.')}
 
