@@ -42,7 +42,7 @@ class MarkTex:
         self.patterns.append((r'_{3}(.*?)_{3}', (('\\underline{\\emph{', '}}'),), True, [0]))
         self.patterns.append((r'_{2}(.*?)_{2}', (('\\underline{', '}'),), True, [0]))
         self.patterns.append((r'_{1}(.*?)_{1}', (('\\emph{', '}'),), True, [0]))
-        self.patterns.append((r'`{1}(.*?)`{1}', (('\\texttt{', '}'),), True, [0]))
+        self.patterns.append((r'`{1}(.*?)`{1}', (('\\lstinline{', '}'),), True, [0]))
 
         # List of characters that will be escaped when preceeded with a backslash.
         self.escapeChars = '[]()*_`\\'
